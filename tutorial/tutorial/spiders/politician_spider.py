@@ -8,6 +8,8 @@ from pathlib import Path
 
 import json
 
+import ast
+
 from datetime import datetime
 
 API_KEY = 'b46adb8c7afe0003aed4fa3d23894129'
@@ -48,7 +50,7 @@ class PoliticianSpider2(scrapy.Spider):
 
     def start_requests(self):
 
-        queries = ['semir+efendic']
+        queries = ['selena+gomez']
 
         for query in queries:
 
@@ -58,13 +60,33 @@ class PoliticianSpider2(scrapy.Spider):
 
     def parse(self, response):
 
+        # for result in response.css('div.e9EfHf'): 
+        #     yield { 
+        #         'url': result.css('a::attr(href)').get(),      
+        #     } 
+
         filename = f"politicalSpider.html"
         page_content = response.body
+        byte_str = page_content.decode("UTF-8")
+        mydata= ast.literal_eval(byte_str)
         
-        #print(page_content)
+        # print(mydata["knowledge_graph"]["social_media"][1]["link"])
 
-        Path(filename).write_bytes(page_content)
-        
+        social_media_list = mydata["knowledge_graph"]["social_media"]
+       
+        for i in range(len(social_media_list)):
+            yield {
+                "Social media link" : social_media_list[i]["link"]
+                }
 
-        self.log(f"Saved file {filename}")
+        organic_results_list = mydata["organic_results"]
+        for i in range(len(organic_results_list)):
+            yield {
+               "Organic results link" : organic_results_list[i]["link"]
+                }
+
+        #run with a command scrapy crawl politician -O politician3.json
+
+        # Path(filename).write_bytes(page_content)
+        # self.log(f"Saved file {filename}")
 
